@@ -10,7 +10,8 @@ export function CompanyProvider({ children }) {
 
   const refreshCompanies = useCallback(async () => {
     try {
-      const data = await companiesApi.getAll();
+      const res = await companiesApi.getAll();
+      const data = Array.isArray(res) ? res : (res?.data || []);
       setCompanies(data);
 
       // Restore saved selection or pick first
@@ -21,6 +22,9 @@ export function CompanyProvider({ children }) {
       } else if (data.length > 0) {
         setCurrentCompany(data[0]);
         localStorage.setItem('currentCompanyId', data[0].id);
+      } else {
+        // Clear stale localStorage
+        localStorage.removeItem('currentCompanyId');
       }
     } catch (err) {
       console.error('Failed to load companies:', err);
