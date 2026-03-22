@@ -14,22 +14,28 @@ if (!fs.existsSync(DATA_DIR)) {
 }
 
 // On Vercel cold start, run seed to generate fresh demo data
-let _seeded = false;
+let _seedChecked = false;
 function ensureSeedData() {
-  if (!IS_VERCEL || _seeded) return;
-  _seeded = true;
-  // Check if data already exists in /tmp (warm invocation)
+  if (_seedChecked) return;
+  _seedChecked = true;
+
+  // Check if data already exists
   const companiesFile = path.join(DATA_DIR, 'companies.csv');
+  let hasData = false;
   if (fs.existsSync(companiesFile)) {
     const content = fs.readFileSync(companiesFile, 'utf8').trim();
-    if (content && content.split('\n').length > 1) return; // has data
+    hasData = content && content.split('\n').length > 1;
   }
-  // Run seed to generate fresh data
-  try {
-    const { seedData } = require('../seed');
-    seedData();
-  } catch (err) {
-    console.error('Auto-seed failed:', err.message);
+
+  if (!hasData) {
+    console.log('[sharp-gst] No data found, running seed...');
+    try {
+      const { seedData } = require('../seed');
+      seedData();
+      console.log('[sharp-gst] Seed completed successfully');
+    } catch (err) {
+      console.error('[sharp-gst] Auto-seed failed:', err.message, err.stack);
+    }
   }
 }
 

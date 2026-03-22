@@ -14,9 +14,12 @@ import Parties from './pages/Parties';
 import SettingsPage from './pages/Settings';
 import Companies from './pages/Companies';
 import { useCompany } from './context/CompanyContext';
+import { companiesApi } from './api/client';
+import { useState } from 'react';
 
 function App() {
-  const { currentCompany, loading } = useCompany();
+  const { currentCompany, loading, refreshCompanies } = useCompany();
+  const [creating, setCreating] = useState(false);
 
   if (loading) {
     return (
@@ -31,7 +34,32 @@ function App() {
       <div className="flex h-screen items-center justify-center bg-[#F8FAFC]">
         <div className="text-center">
           <h2 className="text-xl font-semibold text-slate-700 mb-2">No Company Found</h2>
-          <p className="text-slate-500 mb-4">Run <code className="bg-slate-200 px-2 py-1 rounded">npm run seed</code> to set up initial data.</p>
+          <p className="text-slate-500 mb-4">Create a company to get started.</p>
+          <button
+            disabled={creating}
+            onClick={async () => {
+              setCreating(true);
+              try {
+                await companiesApi.create({
+                  business_name: 'My Company',
+                  gstin: '',
+                  address: '',
+                  state: '',
+                  state_code: '',
+                  email: '',
+                  phone: '',
+                });
+                await refreshCompanies();
+              } catch (e) {
+                console.error('Failed to create company:', e);
+              } finally {
+                setCreating(false);
+              }
+            }}
+            className="px-6 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
+          >
+            {creating ? 'Creating...' : 'Create Company'}
+          </button>
         </div>
       </div>
     );
