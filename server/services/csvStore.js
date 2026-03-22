@@ -7,31 +7,31 @@ const { v4: uuidv4 } = require('uuid');
 const IS_VERCEL = !!process.env.VERCEL;
 const DATA_DIR = IS_VERCEL ? path.join('/tmp', 'sharp-gst-data') : path.join(__dirname, '..', 'data');
 const COMPANIES_DIR = path.join(DATA_DIR, 'companies');
-const SOURCE_DATA_DIR = path.join(__dirname, '..', 'data');
 
-// Copy seed data from bundled source to /tmp on cold start (Vercel only)
-function ensureSeedData() {
-  if (!IS_VERCEL) return;
-  if (fs.existsSync(path.join(DATA_DIR, 'companies.csv'))) return; // already seeded
-  copyDirRecursive(SOURCE_DATA_DIR, DATA_DIR);
+// Ensure data directory exists
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
-function copyDirRecursive(src, dest) {
-  if (!fs.existsSync(src)) return;
-  fs.mkdirSync(dest, { recursive: true });
-  const entries = fs.readdirSync(src, { withFileTypes: true });
-  for (const entry of entries) {
-    const srcPath = path.join(src, entry.name);
-    const destPath = path.join(dest, entry.name);
-    if (entry.isDirectory()) {
-      copyDirRecursive(srcPath, destPath);
-    } else {
-      fs.copyFileSync(srcPath, destPath);
-    }
+// On Vercel cold start, run seed to generate fresh demo data
+let _seeded = false;
+function ensureSeedData() {
+  if (!IS_VERCEL || _seeded) return;
+  _seeded = true;
+  // Check if data already exists in /tmp (warm invocation)
+  const companiesFile = path.join(DATA_DIR, 'companies.csv');
+  if (fs.existsSync(companiesFile)) {
+    const content = fs.readFileSync(companiesFile, 'utf8').trim();
+    if (content && content.split('\n').length > 1) return; // has data
+  }
+  // Run seed to generate fresh data
+  try {
+    const { seedData } = require('../seed');
+    seedData();
+  } catch (err) {
+    console.error('Auto-seed failed:', err.message);
   }
 }
-
-ensureSeedData();
 
 // --- Internal helpers (accept baseDir) ---
 
@@ -177,5 +177,8 @@ csvStore.scoped = function (companyId) {
   const companyDir = path.join(COMPANIES_DIR, companyId);
   return buildStore(companyDir);
 };
+
+// Expose ensureSeedData for the API serverless function
+csvStore.ensureSeedData = ensureSeedData;
 
 module.exports = csvStore;

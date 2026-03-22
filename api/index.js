@@ -2,12 +2,19 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const csvStore = require('../server/services/csvStore');
 const companyScope = require('../server/middleware/companyScope');
 
 const app = express();
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
+
+// Ensure seed data exists on every request (no-op if already seeded)
+app.use((req, res, next) => {
+  csvStore.ensureSeedData();
+  next();
+});
 
 // --- Global routes (no company scoping) ---
 app.use('/api/companies', require('../server/routes/companies'));

@@ -365,4 +365,10 @@ function seedData() {
   console.log('\nDone! Run `npm run dev` to start the application.');
 }
 
-seedData();
+// Export for programmatic use (e.g., Vercel cold start)
+module.exports = { seedData };
+
+// Run directly if called as a script
+if (require.main === module) {
+  seedData();
+}
