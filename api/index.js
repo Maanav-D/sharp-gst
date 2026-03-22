@@ -16,6 +16,34 @@ app.use((req, res, next) => {
   next();
 });
 
+// Debug endpoint to check data status
+app.get('/api/health', (req, res) => {
+  const fs = require('fs');
+  const csvStore = require('../server/services/csvStore');
+  const dataDir = csvStore.dataDir;
+  const bundledDir = path.join(__dirname, '..', 'server', 'data');
+
+  let files = [];
+  try { files = fs.readdirSync(dataDir); } catch(e) {}
+
+  let bundledFiles = [];
+  try { bundledFiles = fs.readdirSync(bundledDir); } catch(e) {}
+
+  let companiesContent = '';
+  try { companiesContent = fs.readFileSync(path.join(dataDir, 'companies.csv'), 'utf8').substring(0, 500); } catch(e) { companiesContent = 'ERROR: ' + e.message; }
+
+  res.json({
+    env: process.env.VERCEL ? 'vercel' : 'local',
+    dataDir,
+    bundledDir,
+    dataDirExists: fs.existsSync(dataDir),
+    bundledDirExists: fs.existsSync(bundledDir),
+    files,
+    bundledFiles,
+    companiesContent,
+  });
+});
+
 // --- Global routes (no company scoping) ---
 app.use('/api/companies', require('../server/routes/companies'));
 app.use('/api/hsn', require('../server/routes/hsn'));

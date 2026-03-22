@@ -5,37 +5,45 @@ const { v4: uuidv4 } = require('uuid');
 
 // In production (Vercel), use /tmp for writable storage; locally use ./data
 const IS_VERCEL = !!process.env.VERCEL;
-const DATA_DIR = IS_VERCEL ? path.join('/tmp', 'sharp-gst-data') : path.join(__dirname, '..', 'data');
+const BUNDLED_DATA_DIR = path.join(__dirname, '..', 'data');
+const DATA_DIR = IS_VERCEL ? path.join('/tmp', 'sharp-gst-data') : BUNDLED_DATA_DIR;
 const COMPANIES_DIR = path.join(DATA_DIR, 'companies');
 
-// Ensure data directory exists
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
+// Copy directory recursively
+function copyDirSync(src, dest) {
+  fs.mkdirSync(dest, { recursive: true });
+  for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+    const srcPath = path.join(src, entry.name);
+    const destPath = path.join(dest, entry.name);
+    if (entry.isDirectory()) {
+      copyDirSync(srcPath, destPath);
+    } else {
+      fs.copyFileSync(srcPath, destPath);
+    }
+  }
 }
 
-// On Vercel cold start, run seed to generate fresh demo data
+// On Vercel cold start, copy bundled CSV data to /tmp
 let _seedChecked = false;
 function ensureSeedData() {
   if (_seedChecked) return;
   _seedChecked = true;
+  if (!IS_VERCEL) return;
 
-  // Check if data already exists
   const companiesFile = path.join(DATA_DIR, 'companies.csv');
-  let hasData = false;
   if (fs.existsSync(companiesFile)) {
     const content = fs.readFileSync(companiesFile, 'utf8').trim();
-    hasData = content && content.split('\n').length > 1;
+    if (content && content.split('\n').length > 1) return; // already has data
   }
 
-  if (!hasData) {
-    console.log('[sharp-gst] No data found, running seed...');
-    try {
-      const { seedData } = require('../seed');
-      seedData();
-      console.log('[sharp-gst] Seed completed successfully');
-    } catch (err) {
-      console.error('[sharp-gst] Auto-seed failed:', err.message, err.stack);
-    }
+  // Copy bundled data from server/data/ to /tmp
+  console.log('[sharp-gst] Copying bundled data to /tmp...');
+  console.log('[sharp-gst] Source:', BUNDLED_DATA_DIR, 'exists:', fs.existsSync(BUNDLED_DATA_DIR));
+  try {
+    copyDirSync(BUNDLED_DATA_DIR, DATA_DIR);
+    console.log('[sharp-gst] Data copied successfully');
+  } catch (err) {
+    console.error('[sharp-gst] Copy failed:', err.message);
   }
 }
 
