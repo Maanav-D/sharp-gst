@@ -35,6 +35,12 @@ app.get('/api/health', (req, res) => {
     let companiesContent = '';
     try { companiesContent = fs.readFileSync(path.join(dataDir, 'companies.csv'), 'utf8').substring(0, 500); } catch(e) { companiesContent = 'ERROR: ' + e.message; }
 
+    // Also test the actual getAll
+    let companiesParsed = [];
+    try {
+      companiesParsed = csvStore.getAll('companies.csv');
+    } catch(e) { companiesParsed = [{ error: e.message }]; }
+
     res.json({
       ok: true,
       env: process.env.VERCEL ? 'vercel' : 'local',
@@ -45,6 +51,8 @@ app.get('/api/health', (req, res) => {
       files,
       bundledFiles,
       companiesContent,
+      companiesParsed,
+      companiesCount: companiesParsed.length,
       dirname: __dirname,
     });
   } catch (err) {
