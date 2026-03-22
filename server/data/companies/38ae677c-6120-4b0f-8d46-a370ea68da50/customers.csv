@@ -1,0 +1,6 @@
+id,name,gstin,email,phone,address,state_code,gstin_type,created_at,updated_at
+216119e0-d106-437a-a9a4-1af9fd11754f,TechVista Solutions Pvt Ltd,29AABCT1234Q1Z5,accounts@techvista.in,9876543210,"45, Koramangala, Bengaluru",29,REGULAR,2026-03-07T05:48:07.789Z,2026-03-07T05:48:07.789Z
+058413fc-535c-4fed-96a7-e236608a7255,Mumbai Electronics Hub,27BBCDE5678R2Z3,purchase@mumbaielectronics.com,9123456780,"12, Andheri East, Mumbai",27,REGULAR,2026-03-07T05:48:07.789Z,2026-03-07T05:48:07.789Z
+7ec414c6-4300-4d6f-b3cc-59dc7c95786c,Delhi Hardware Store,07CDEFG9012S3Z1,info@delhihardware.in,9988776655,"78, Chandni Chowk, Delhi",07,REGULAR,2026-03-07T05:48:07.790Z,2026-03-07T05:48:07.790Z
+798ac395-2ab9-4be2-aa7a-c9f0d75fb3d9,Raj Computer Services,,raj@rajcomputers.com,8877665544,"23, MG Road, Bengaluru",29,UNREGISTERED,2026-03-07T05:48:07.790Z,2026-03-07T05:48:07.790Z
+02763023-e634-4330-b581-4c2d0a06bbbf,Chennai IT Solutions,33GHIJK3456T4Z8,billing@chennaiit.co.in,7766554433,"56, T Nagar, Chennai",33,REGULAR,2026-03-07T05:48:07.790Z,2026-03-07T05:48:07.790Z
