@@ -1,11 +1,16 @@
-const pdfParse = require('pdf-parse');
+// Lazy-load to avoid serverless cold start issues
+let pdfParse;
+function getPdfParse() {
+  if (!pdfParse) pdfParse = require('pdf-parse');
+  return pdfParse;
+}
 
 /**
  * Extract structured invoice data from PDF buffer.
  * Uses regex-based heuristics to parse common Indian GST invoice formats.
  */
 async function parseInvoicePDF(buffer) {
-  const data = await pdfParse(buffer);
+  const data = await getPdfParse()(buffer);
   const text = data.text;
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
 

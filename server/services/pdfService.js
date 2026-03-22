@@ -1,5 +1,11 @@
-const PDFDocument = require('pdfkit');
 const { numberToWords } = require('./gstCalc');
+
+// Lazy-load pdfkit to avoid issues on serverless cold starts
+let PDFDocument;
+function getPDFDocument() {
+  if (!PDFDocument) PDFDocument = require('pdfkit');
+  return PDFDocument;
+}
 
 function formatIndianNumber(num) {
   const n = Number(num);
@@ -21,7 +27,8 @@ function formatIndianNumber(num) {
 }
 
 function generateInvoicePDF(invoice, lineItems, stream) {
-  const doc = new PDFDocument({ size: 'A4', margin: 50 });
+  const PDFDoc = getPDFDocument();
+  const doc = new PDFDoc({ size: 'A4', margin: 50 });
   doc.pipe(stream);
 
   // Watermark for draft
